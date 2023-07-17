@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="header logo">Vuegram</h1>
+    <h1 class="header">Vuegram</h1>
     <div v-if="postDataSet.length > 0">
       <div
         v-for="(post, index) in postDataSet"
@@ -23,7 +23,7 @@
               </button>
             </div>
           </div>
-          <div class="comment-input-container" v-if="commentFlag">
+          <div class="comment-input-container" v-if="commentFlags[index]">
             <label for="comment">Comment: </label>
             <input type="text" v-model="newComment" class="comment-input" />
             <button
@@ -68,8 +68,7 @@ export default {
     return {
       postDataSet: [],
       newComment: "",
-      commentFlag: true,
-      commentIndex: null,
+      commentFlags: [],
     };
   },
   components: {
@@ -92,30 +91,16 @@ export default {
         editing: false,
         newCaption: "",
       };
-      console.log(data.image);
-      console.log(data.caption);
       this.postDataSet.push(post);
+      this.commentFlags.push(true);
     },
     commentHandler(index) {
       const post = this.postDataSet[index];
       if (this.newComment.trim() !== "") {
         post.comments = this.newComment;
       }
-
-      this.convertToBase64(post.image)
-        .then((base64Image) => {
-          post.image = base64Image; 
-          return axios.post("http://localhost:3333/api/media", post);
-        })
-        .then((response) => {
-          console.log(response);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-
       this.newComment = "";
-      this.commentFlag = false;
+      this.commentFlags[index] = false;
     },
     editPost(index) {
       const post = this.postDataSet[index];
@@ -130,10 +115,11 @@ export default {
     },
     editComment(index) {
       const post = this.postDataSet[index];
-      this.commentFlag = true;
       this.newComment = post.comments;
+      this.commentFlags[index] = true;
       this.commentIndex = index;
     },
+
     deletePost(index) {
       this.postDataSet.splice(index, 1);
     },
@@ -258,9 +244,6 @@ export default {
   background-color: #a6d8f0;
   padding: 10px;
   border-bottom: 1px solid #dbdbdb;
-}
-
-.logo {
   font-family: "Grand Hotel", cursive;
   font-size: 32px;
   color: #262626;
